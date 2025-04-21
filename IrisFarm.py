@@ -33,6 +33,9 @@ class IrisfarmMod(loader.Module):
 
     async def farmcmd(self, message):
         """- вкл/выкл фарму в текущем чате"""
+        await asyncio.sleep(3)
+        await message.delete()
+        
         if self.farm_status.get("chat"):
             self.farm_status["chat"] = False
             self.farm_status["chat_id"] = None
