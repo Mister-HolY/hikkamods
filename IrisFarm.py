@@ -27,9 +27,9 @@ class IrisfarmMod(loader.Module):
         self.farm_status = self.db.get("Irisfarm", "status", {})  
 
         if self.farm_status.get("chat"):
-            self.loop.create_task(self._farm_loop("chat"))
+            asyncio.create_task(self._farm_loop("chat"))
         if self.farm_status.get("bot"):
-            self.loop.create_task(self._farm_loop("bot"))
+            asyncio.create_task(self._farm_loop("bot"))
 
     async def farmcmd(self, message):
         """- вкл/выкл фарму в текущем чате"""
@@ -41,7 +41,7 @@ class IrisfarmMod(loader.Module):
             self.farm_status["chat"] = True
             self.db.set("Irisfarm", "status", self.farm_status)
             await utils.answer(message, "<b>Фарма ☢️IC в чате запущена.</b>")
-            self.loop.create_task(self._farm_loop("chat"))
+            asyncio.create_task(self._farm_loop("chat"))
 
     async def farmiriscmd(self, message):
         """- вкл/выкл фарму в лс бота"""
@@ -53,15 +53,15 @@ class IrisfarmMod(loader.Module):
             self.farm_status["bot"] = True
             self.db.set("Irisfarm", "status", self.farm_status)
             await utils.answer(message, "<b>Фарма ☢️IC в лс бота запущена.</b>")
-            self.loop.create_task(self._farm_loop("bot"))
+            asyncio.create_task(self._farm_loop("bot"))
 
     async def _farm_loop(self, mode):
         while self.farm_status.get(mode):
             try:
                 if mode == "chat":
-                    await self.client.send_message("me", "Фарма")  
+                    await self.client.send_message("me", "Фарма")
                 else:
                     await self.client.send_message(_bot, "Фарма")
-                await asyncio.sleep(14700)
+                await asyncio.sleep(14700)  
             except Exception:
                 await asyncio.sleep(10)
