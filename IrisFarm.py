@@ -32,10 +32,7 @@ class IrisfarmMod(loader.Module):
             asyncio.create_task(self._farm_loop("bot"))
 
     async def farmcmd(self, message):
-        """- вкл/выкл фарму в текущем чате"""
-        await asyncio.sleep(3)
-        await message.delete()
-        
+        """- вкл/выкл фарму в текущем чате"""      
         if self.farm_status.get("chat"):
             self.farm_status["chat"] = False
             self.farm_status["chat_id"] = None
@@ -47,6 +44,8 @@ class IrisfarmMod(loader.Module):
             self.db.set("Irisfarm", "status", self.farm_status)
             await utils.answer(message, "<b>Фарма ☢️IC в чате запущена.</b>")
             asyncio.create_task(self._farm_loop("chat", message.chat.id))
+            await asyncio.sleep(3)
+            await message.delete()
 
     async def farmiriscmd(self, message):
         """- вкл/выкл фарму в лс бота"""
