@@ -85,7 +85,7 @@ class IrisfarmMod(loader.Module):
             await utils.answer(message, "<emoji document_id=5420323339723881652>⚠️</emoji> <b>Фарма в лс бота остановлена.</b>")
         else:
             self.farm_status["bot"] = True
-            self.farm_status["bot_next_time"] = time.time() + 5  # задержка перед первым запуском
+            self.farm_status["bot_next_time"] = time.time() + 5  
             self.db.set("Irisfarm", "status", self.farm_status)
             await utils.answer(message, f"<b>Фарма ☢️IC в ЛС @{self.iris_map[self.config['iris_type']]} запущена.</b>")
             asyncio.create_task(self._farm_loop("bot"))
