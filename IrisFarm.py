@@ -49,10 +49,10 @@ class IrisfarmMod(loader.Module):
         self.client = client
         self.farm_status = self.db.get("Irisfarm", "status", {})
 
-        for mode in ["chat", "bot"]:    
-            if self.farm_status.get(mode) and (    
-                mode != "chat" or self.farm_status.get("chat_id")    
-            ):    
+        for mode in ["chat", "bot"]:
+            if self.farm_status.get(mode) and (
+                mode != "chat" or self.farm_status.get("chat_id")
+            ):
                 asyncio.create_task(self._farm_loop(mode, self.farm_status.get("chat_id")))
 
     def _get_iris_bot(self):
@@ -106,7 +106,7 @@ class IrisfarmMod(loader.Module):
             try:
                 target = chat_id if mode == "chat" and chat_id else self._get_iris_bot()
                 msg = await self.client.send_message(target, "Фарма")
-                
+
                 async for response in self.client.iter_messages(target, reply_to=msg.id, limit=5):
                     if "ЗАЧЁТ" in response.raw_text or "ЗАЧЁТ" in response.text:
                         self.farm_status[key] = time.time() + 14700
@@ -115,13 +115,13 @@ class IrisfarmMod(loader.Module):
                     if "Следующая добыча через" in response.raw_text:
                         text = response.raw_text
                         minutes = hours = seconds = 0
-                        
-                        if res := re.search(r"через (\d+) час", text):  
-                        hours = int(res.group(1))
+
+                        if res := re.search(r"через (\d+) час", text):
+                            hours = int(res.group(1))
                         if res := re.search(r"(\d+) мин", text):
-                        minutes = int(res.group(1))
+                            minutes = int(res.group(1))
                         if res := re.search(r"(\d+) сек", text):
-                        seconds = int(res.group(1))
+                            seconds = int(res.group(1))
 
                         delay = hours * 3600 + minutes * 60 + seconds + 5  # +5 сек для надёжности
                         self.farm_status[key] = time.time() + max(delay, 120)
