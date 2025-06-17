@@ -13,6 +13,7 @@
 
 from .. import loader, utils
 import asyncio
+import time
 
 class IrisfarmMod(loader.Module):
     """Автоматизирует работу с Iris Chat Manager"""
@@ -47,10 +48,11 @@ class IrisfarmMod(loader.Module):
         self.client = client
         self.farm_status = self.db.get("Irisfarm", "status", {})  
 
-        if self.farm_status.get("chat") and self.farm_status.get("chat_id"):
-            asyncio.create_task(self._farm_loop("chat", self.farm_status["chat_id"]))
-        if self.farm_status.get("bot"):
-            asyncio.create_task(self._farm_loop("bot"))
+        for mode in ["chat", "bot"]:
+            if self.farm_status.get(mode) and (
+                mode != "chat" or self.farm_status.get("chat_id")
+            ):
+                asyncio.create_task(self._farm_loop(mode, self.farm_status.get("chat_id")))
 
     def _get_iris_bot(self):
         iris_type = self.config["iris_type"]
@@ -61,11 +63,13 @@ class IrisfarmMod(loader.Module):
         if self.farm_status.get("chat"):
             self.farm_status["chat"] = False
             self.farm_status["chat_id"] = None
+            self.farm_status.pop("chat_next_time", None)
             self.db.set("Irisfarm", "status", self.farm_status)
             await utils.answer(message, "<emoji document_id=5420323339723881652>⚠️</emoji> <b>Фарма в чате остановлена.</b>")
         else:
             self.farm_status["chat"] = True
             self.farm_status["chat_id"] = message.chat.id
+            self.farm_status["chat_next_time"] = time.time() + 5  # задержка перед первым запуском
             self.db.set("Irisfarm", "status", self.farm_status)
             await utils.answer(message, "<b>Фарма ☢️IC в чате запущена.</b>")
             asyncio.create_task(self._farm_loop("chat", message.chat.id))
@@ -76,21 +80,35 @@ class IrisfarmMod(loader.Module):
         """- вкл/выкл фарму в лс бота"""
         if self.farm_status.get("bot"):
             self.farm_status["bot"] = False
+            self.farm_status.pop("bot_next_time", None)
             self.db.set("Irisfarm", "status", self.farm_status)
             await utils.answer(message, "<emoji document_id=5420323339723881652>⚠️</emoji> <b>Фарма в лс бота остановлена.</b>")
         else:
             self.farm_status["bot"] = True
+            self.farm_status["bot_next_time"] = time.time() + 5  # задержка перед первым запуском
             self.db.set("Irisfarm", "status", self.farm_status)
             await utils.answer(message, f"<b>Фарма ☢️IC в ЛС @{self.iris_map[self.config['iris_type']]} запущена.</b>")
             asyncio.create_task(self._farm_loop("bot"))
+            await asyncio.sleep(3)
+            await message.delete()
 
     async def _farm_loop(self, mode, chat_id=None):
+        key = f"{mode}_next_time"
         while self.farm_status.get(mode):
+            now = time.time()
+            next_time = self.farm_status.get(key, now)
+            wait_time = max(0, next_time - now)
+
+            if wait_time > 0:
+                await asyncio.sleep(wait_time)
+
             try:
                 if mode == "chat" and chat_id:
                     await self.client.send_message(chat_id, "Фарма")
                 elif mode == "bot":
                     await self.client.send_message(self._get_iris_bot(), "Фарма")
-                await asyncio.sleep(14700)
+
+                self.farm_status[key] = time.time() + 14700  
+                self.db.set("Irisfarm", "status", self.farm_status)
             except Exception:
                 await asyncio.sleep(10)
