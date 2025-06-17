@@ -108,22 +108,24 @@ class IrisfarmMod(loader.Module):
                 msg = await self.client.send_message(target, "Фарма")
 
                 async for response in self.client.iter_messages(target, reply_to=msg.id, limit=5):
-                    if "ЗАЧЁТ" in response.raw_text or "ЗАЧЁТ" in response.text:
-                        self.farm_status[key] = time.time() + 14700
+                    text = response.raw_text.lower()
+
+                    if "зачёт" in text:
+                        self.farm_status[key] = time.time() + 14700  
                         break
 
-                    if "Следующая добыча через" in response.raw_text:
-                        text = response.raw_text
+
+                    if "незачёт" in text and "следующая добыча через" in text:
                         minutes = hours = seconds = 0
 
-                        if res := re.search(r"через (\d+) час", text):
+                        if res := re.search(r"через\s+(\d+)\s*час", text):
                             hours = int(res.group(1))
-                        if res := re.search(r"(\d+) мин", text):
+                        if res := re.search(r"(\d+)\s*мин", text):
                             minutes = int(res.group(1))
-                        if res := re.search(r"(\d+) сек", text):
+                        if res := re.search(r"(\d+)\s*сек", text):
                             seconds = int(res.group(1))
 
-                        delay = hours * 3600 + minutes * 60 + seconds + 5  # +5 сек для надёжности
+                        delay = hours * 3600 + minutes * 60 + seconds + 5
                         self.farm_status[key] = time.time() + max(delay, 120)
                         break
 
