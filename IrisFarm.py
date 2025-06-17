@@ -21,7 +21,7 @@ class IrisfarmMod(loader.Module):
 
     strings = {"name": "Irisfarm"}
 
-    def init(self):
+    def __init__(self):
         self.config = loader.ModuleConfig(
             loader.ConfigValue(
                 "iris_type",
