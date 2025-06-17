@@ -108,7 +108,7 @@ class IrisfarmMod(loader.Module):
                 msg = await self.client.send_message(target, "Фарма")
                 
                 async for response in self.client.iter_messages(target, reply_to=msg.id, limit=5):
-                    if "ЗАЧЁТ" in response.raw_text:
+                    if "ЗАЧЁТ" in response.raw_text or "ЗАЧЁТ" in response.text:
                         self.farm_status[key] = time.time() + 14700
                         break
 
