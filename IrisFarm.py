@@ -17,7 +17,7 @@ import time
 import re
 
 class IrisfarmMod(loader.Module):
-    """Автоматизирует работу с Iris Chat Manager"""
+    """Автоматизирует фарм ресурсов в Iris Chat Manager"""
 
     strings = {"name": "Irisfarm"}
 
@@ -26,7 +26,7 @@ class IrisfarmMod(loader.Module):
             loader.ConfigValue(
                 "iris_type",
                 "Классический ирис🔵",
-                "Выбор ириса",
+                "Выбор типа Iris",
                 validator=loader.validators.Choice([
                     "Чёрный ирис⚫",
                     "Фиолетовый ирис🟣",
@@ -60,35 +60,35 @@ class IrisfarmMod(loader.Module):
         return f"@{self.iris_map.get(iris_type, 'iris_cm_bot')}"
 
     async def farmcmd(self, message):
-        """- вкл/выкл фарму в текущем чате"""
+        """Включить/выключить фарм в чате"""
         if self.farm_status.get("chat"):
             self.farm_status["chat"] = False
             self.farm_status["chat_id"] = None
             self.farm_status.pop("chat_next_time", None)
             self.db.set("Irisfarm", "status", self.farm_status)
-            await utils.answer(message, "<emoji document_id=5420323339723881652>⚠️</emoji> <b>Фарма в чате остановлена.</b>")
+            await utils.answer(message, "⛔️ Фарма в чате остановлена.")
         else:
             self.farm_status["chat"] = True
             self.farm_status["chat_id"] = message.chat.id
             self.farm_status["chat_next_time"] = time.time() + 5
             self.db.set("Irisfarm", "status", self.farm_status)
-            await utils.answer(message, "<b>Фарма ☢️IC в чате запущена.</b>")
+            await utils.answer(message, "✅ Фарма в чате запущена.")
             asyncio.create_task(self._farm_loop("chat", message.chat.id))
         await asyncio.sleep(3)
         await message.delete()
 
     async def farmiriscmd(self, message):
-        """- вкл/выкл фарму в лс бота"""
+        """Включить/выключить фарм в ЛС бота"""
         if self.farm_status.get("bot"):
             self.farm_status["bot"] = False
             self.farm_status.pop("bot_next_time", None)
             self.db.set("Irisfarm", "status", self.farm_status)
-            await utils.answer(message, "<emoji document_id=5420323339723881652>⚠️</emoji> <b>Фарма в лс бота остановлена.</b>")
+            await utils.answer(message, "⛔️ Фарма в ЛС остановлена.")
         else:
             self.farm_status["bot"] = True
             self.farm_status["bot_next_time"] = time.time() + 5
             self.db.set("Irisfarm", "status", self.farm_status)
-            await utils.answer(message, f"<b>Фарма ☢️IC в ЛС @{self.iris_map[self.config['iris_type']]} запущена.</b>")
+            await utils.answer(message, f"✅ Фарма в ЛС @{self.iris_map[self.config['iris_type']]} запущена.")
             asyncio.create_task(self._farm_loop("bot"))
         await asyncio.sleep(3)
         await message.delete()
@@ -111,12 +111,11 @@ class IrisfarmMod(loader.Module):
                     text = response.raw_text.lower()
 
                     if "зачёт" in text:
-                        self.farm_status[key] = time.time() + 14700  
+                        self.farm_status[key] = time.time() + 4 * 3600 + 50  # 4 часа и 50 секунд
                         break
 
-
                     if "незачёт" in text and "следующая добыча через" in text:
-                        minutes = hours = seconds = 0
+                        hours = minutes = seconds = 0
 
                         if res := re.search(r"через\s+(\d+)\s*час", text):
                             hours = int(res.group(1))
