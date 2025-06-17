@@ -69,7 +69,7 @@ class IrisfarmMod(loader.Module):
         else:
             self.farm_status["chat"] = True
             self.farm_status["chat_id"] = message.chat.id
-            self.farm_status["chat_next_time"] = time.time() + 5  # задержка перед первым запуском
+            self.farm_status["chat_next_time"] = time.time() + 5 
             self.db.set("Irisfarm", "status", self.farm_status)
             await utils.answer(message, "<b>Фарма ☢️IC в чате запущена.</b>")
             asyncio.create_task(self._farm_loop("chat", message.chat.id))
