@@ -14,7 +14,7 @@
 from .. import loader, utils
 import asyncio
 import time
-import re
+
 
 class IrisfarmMod(loader.Module):
     """Автоматизирует работу с Iris Chat Manager"""
@@ -104,30 +104,12 @@ class IrisfarmMod(loader.Module):
                 await asyncio.sleep(wait_time)
 
             try:
-                target = chat_id if mode == "chat" and chat_id else self._get_iris_bot()
-                msg = await self.client.send_message(target, "Фарма")
+                if mode == "chat" and chat_id:
+                    await self.client.send_message(chat_id, "Фарма")
+                elif mode == "bot":
+                    await self.client.send_message(self._get_iris_bot(), "Фарма")
 
-                async for response in self.client.iter_messages(target, reply_to=msg.id, limit=5):
-                    text = response.raw_text.lower()
-
-                    if re.search(r"✅\s*<b>зач[её]т!?</b>", text, re.IGNORECASE):
-                        self.farm_status[key] = time.time() + 14700
-                        break
-
-                    if re.search(r"❌\s*незач[её]т!?", text, re.IGNORECASE) and re.search(r"следующ[а-я]*\s+добыча\s+через", text, re.IGNORECASE):
-                        minutes = hours = seconds = 0
-                        if res := re.search(r"(\d+)\s*час", text):
-                            hours = int(res.group(1))
-                        if res := re.search(r"(\d+)\s*мин", text):
-                            minutes = int(res.group(1))
-                        if res := re.search(r"(\d+)\s*сек", text):
-                            seconds = int(res.group(1))
-
-                        delay = hours * 3600 + minutes * 60 + seconds + 5
-                        self.farm_status[key] = time.time() + max(delay, 120)
-                        break
-
+                self.farm_status[key] = time.time() + 14700
                 self.db.set("Irisfarm", "status", self.farm_status)
-
             except Exception:
                 await asyncio.sleep(10)
